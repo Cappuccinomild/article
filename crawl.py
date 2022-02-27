@@ -155,22 +155,35 @@ def merge(parsecount):
         os.remove("errorlog_culture"+str(i+10)+".txt")
         os.remove("culture"+str(i+10)+".txt")
 
-def start_parse(dept, date):
-
-    #sid1 = 정치:100   경제:101  사회:102  생활/문화:103   IT/과학:105   세계:104
+def start_parse(id):
+    
+    #sid1 = 정치:100   경제:101  사회:102  생활/문화:103   세계:104   IT/과학:105
 
     #정치sid2 = 청와대:264  국회/정당:265   북한:268 행정:266 국방/외교:267  정치일반:269
     #경제sid2 = 금융:259    증권:258  산업/재계:261   중기/벤처:771   부동산:260 글로벌 경제:262  생활경제:310    경제일반:263
     #사회sid2 = 사건사고:249  교육:250  노동:251  언론:254  환경:252  인권/복지:59b   식품/의료:255   지역:256  인물:276  사회일반:257
     #생활/문화sid2 = 건강정보:241   자동차/시승기:239    도로/교통:240  여행/레저:237 음식/맛집:238  패션/뷰티:376  공연/전시:242  책:243  종교:244  날씨:248  생활문화 일반:245
-    #IT/과학sid2 = 모바일:731    인터넷/SNS:226    통신/뉴미디어:227    IT일반:230   보안/해킹:732  컴퓨터:283    게임/리뷰:229  과학 일반:228
     #세계sid2 = 아시아/호주:231    미국/중남미:232  유럽:233   중동/아프리카:234    세계일반:322
+    #IT/과학sid2 = 모바일:731    인터넷/SNS:226    통신/뉴미디어:227    IT일반:230   보안/해킹:732  컴퓨터:283    게임/리뷰:229  과학 일반:228
+    sid = {
+    100:["264","265","268","266","267","269"],
+    101:["259","258","261","771","260","262","310","263"],
+    102:["249","250","251","254","252","59b","255","256","276","257"],
+    103:["241","239","240","237","238","376","242","243","244","248","245"],
+    104:["231","232","233","234","322"],
+    105:["731","226","227","230","732","283","229","228"]
+    }
 
-    #dept = [sid1, sid2, sid2-1, ...]
     #https://news.naver.com/main/list.naver?mode=LS2D&mid=shm&sid2=+sid2+&sid1=+sid1+&date=20220226
 
-    sid1 = dept[0]
-    sid2 = dept[1:]
+    sid1 = str(id)
+    sid2 = sid[id]
+    #link = "https://news.naver.com/main/list.naver?mode=LS2D&mid=shm&sid2="+sid2+"&sid1="+sid1+"&date=20220226"
+
+    print(sid1, sid2)
+    print(date[0], date[1])
+
+
 
     '''
     for sid in sid2:
@@ -180,22 +193,23 @@ def start_parse(dept, date):
     '''
 
 if __name__ == '__main__':
-    '''
+
+    global date
+
     start = time.time()
 
-    #sid1[sid2]
-    []
-    parsecount = list(range(0, 1200, 10))\
-    #[정치, 경제, 사회, 생활/문화, IT/과학, 세계, 칼럼] = 7
-    pool = multiprocessing.Pool(processes=7)
+    date = ["20220228", "20220110"]
 
-    pool.map(start_parse(dept, date), dept, date)
+    #sid1[sid2]
+    #[정치, 경제, 사회, 생활/문화, IT/과학, 세계, 칼럼] = 7
+    pool = multiprocessing.Pool(processes=6)
+    pool.map(start_parse, list(range(100,106)))
 
     pool.close()
     pool.join()
 
     print(time.time() - start)
-    '''
+
     '''
     print('merge start...')
     merge(parsecount)
