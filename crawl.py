@@ -54,7 +54,7 @@ def get_link_test(map_val):#일별 기사 페이지 링크를 추출함
     print(datas)
 
     #전체코드세부코드 디렉토리를 만든 후 파일 저장
-    dir = './'+sid1+sid2
+    dir = './'+sid1+sid2+"_link"
     os.makedirs(dir, exist_ok=True)
 
 
@@ -120,6 +120,7 @@ def get_link_test(map_val):#일별 기사 페이지 링크를 추출함
 
         f = open(dir+'/'+fname, "w")
         f.write("\n".join(link_set))
+        f.write("\n")
 
         #종료조건
         if datas['date'] == date_e:

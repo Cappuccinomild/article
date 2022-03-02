@@ -7,6 +7,7 @@ import ast
 import multiprocessing
 import os
 import math
+from tqdm import tqdm
 
 def str_to_date(input):#yyyymmdd 문자열을 datetime 객체로 변경
     #                             yyyy              mm              dd
@@ -83,14 +84,17 @@ def cut_tail(word_corpus):
 
 #기사 본문 추출
 def get_article(map_val):#return list
-
+    print(map_val)
     #map_val[대분류코드, 시작날짜, 종료날짜]
     sid1 = map_val[0]
     sid2 = map_val[1]
     date_s = map_val[2]
     date_e = map_val[3]
 
-    path = "./" + sid1+sid2
+    #저장할 폴더
+    path = './'+sid1+sid2+"_link"
+    output_path = './'+sid1+sid2
+    os.makedirs(output_path, exist_ok=True)
     #분할된 날짜 내의 파일만 가져옴
     link_set = []
     for fname in os.listdir(path):
@@ -101,11 +105,10 @@ def get_article(map_val):#return list
         if date_s >= fdate and fdate >= date_e:
             link_set.append(fname)
 
-
     print(link_set)
     for fname in link_set:
         f = open(path + "/" + fname)
-        output = open(fname, "a")
+        output = open(output_path + "/" + fname, "a", encoding='utf-8')
 
         #파일 형식 -> sid1sid2_언론사_기사링크
 
@@ -113,10 +116,18 @@ def get_article(map_val):#return list
         while line:
             if not line:
                 break
+
+            if line == "\n":
+                break
+
             line = line.split("_")
 
+            try:
             #기사 크롤링
-            html = get_html(line[4][:-1])#끝부분 줄바꿈문자 제거
+                html = get_html(line[4].replace("\n", ''))#끝부분 줄바꿈문자 제거
+            except:
+                print("errline", fname, line)
+                continue
 
             #사진 설명 삭제
             html = re.sub('<em class="img_desc.+?/em>', '', html)
@@ -145,21 +156,35 @@ def get_article(map_val):#return list
                 output.write(word_corpus + '\n\n')
 
 
-            except UnicodeEncodeError:
+            except UnicodeEncodeError as encode:
+                print(fname)
+                print(encode)
+                print(line)
+                errorlog = open(output_path + "/" + fname +"_err", "a")
                 errorlog.write('UnicodeEncodeError : ')
-                errorlog = open(fname+"_err", "a")
                 errorlog.write(line[4][:-1] + '\n')
                 errorlog.close()
-            except SyntaxError:
-                errorlog = open(fname+"_err", "a")
+            except SyntaxError as syntx:
+                print(fname)
+                print(syntx)
+                print(line)
+                errorlog = open(output_path + "/" + fname +"_err", "a")
                 errorlog.write('SyntaxError : ')
                 errorlog.write(line[4][:-1] + '\n')
                 errorlog.close()
-            except ValueError:
-                errorlog = open(fname+"_err", "a")
+            except ValueError as val:
+                print(fname)
+                print(val)
+                print(line)
+                errorlog = open(output_path + "/" + fname +"_err", "a")
                 errorlog.write(text)
                 errorlog.write(line[4][:-1] + '\n')
                 errorlog.close()
+            except:
+                print(fname)
+                print("unexpect")
+                print(line)
+
 
             line = f.readline()
 
@@ -167,67 +192,6 @@ def get_article(map_val):#return list
     f.close()
 
 
-def get_article_test(map_val):#return list
-
-    #map_val[대분류코드, 시작날짜, 종료날짜]
-    sid1 = map_val[0]
-    sid2 = map_val[1]
-    date_s = map_val[2]
-    date_e = map_val[3]
-
-    path = "./" + sid1+sid2
-    #분할된 날짜 내의 파일만 가져옴
-    link_set = []
-    for fname in os.listdir(path):
-
-        fdate = fname.split("_")[1][:-4]
-        fdate = str_to_date(fdate)
-
-        if date_s >= fdate and fdate >= date_e:
-            link_set.append(fname)
-
-    fname = link_set[0]
-
-    f = open(path + "/" + fname, "r")
-    output = open(fname, "a")
-    #파일 형식 -> sid1sid2_언론사_날짜_페이지_기사링크
-    line = f.readline()
-    while line:
-        if not line:
-            break
-        line = line.split("_")
-
-        #기사 크롤링
-        html = get_html(line[4][:-1])#끝부분 줄바꿈문자 제거
-
-        #사진 설명 삭제
-        html = re.sub('<em class="img_desc.+?/em>', '', html)
-
-        # 각 기사에서 텍스트만 정제하여 추출
-        soup = BeautifulSoup(html, 'lxml')
-        text = ''
-        img_desc = []
-        doc = None
-
-        for item in soup.find_all('div', id='articleBodyContents'):
-
-            text = text + str(item.find_all(text=True))
-            text = ast.literal_eval(text)
-
-            print(line[1])
-            print(text)
-            doc = text_cleaning(text[8:], line[1])#본문 내 언론사 삭제
-
-            print(doc)
-            word_corpus = (' '.join(doc))
-            word_corpus = cut_tail(word_corpus)
-
-            output.write(word_corpus + '\n')
-
-        line = f.readline()
-
-    f.close()
-    output.close()
 
 
 if __name__ == '__main__':
