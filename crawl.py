@@ -2,12 +2,14 @@ import requests
 from bs4 import BeautifulSoup
 import datetime
 import time
-import re
-import ast
 import os
 from tqdm import tqdm
 import math
 import multiprocessing
+
+def str_to_date(input):#yyyymmdd 문자열을 datetime 객체로 변경
+    #                             yyyy              mm              dd
+    return datetime.datetime(int(input[:4]), int(input[4:6]), int(input[6:]))
 
 def date_to_str(input):#datetime 객체를 yyyymmdd 형식으로 변경
     output = ''
