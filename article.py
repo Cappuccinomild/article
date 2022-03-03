@@ -105,13 +105,13 @@ def get_article(map_val):#return list
         if date_s >= fdate and fdate >= date_e:
             link_set.append(fname)
 
-    print(link_set)
-    for fname in link_set:
+    for i in tqdm(range(len(link_set))):
+        fname = link_set[i]
         f = open(path + "/" + fname)
         output = open(output_path + "/" + fname, "a", encoding='utf-8')
 
-        #파일 형식 -> sid1sid2_언론사_기사링크
-
+        #파일 형식
+        #line -> sid1sid2_언론사_날짜_페이지_기사링크
         line = f.readline()
         while line:
             if not line:
@@ -123,7 +123,7 @@ def get_article(map_val):#return list
             line = line.split("_")
 
             try:
-            #기사 크롤링
+                #저장된 링크를 통한 기사 크롤링
                 html = get_html(line[4].replace("\n", ''))#끝부분 줄바꿈문자 제거
             except:
                 print("errline", fname, line)
@@ -155,7 +155,7 @@ def get_article(map_val):#return list
 
                 output.write(word_corpus + '\n\n')
 
-
+            #오류 예외처리
             except UnicodeEncodeError as encode:
                 print(fname)
                 print(encode)
@@ -192,8 +192,6 @@ def get_article(map_val):#return list
     f.close()
 
 
-
-
 if __name__ == '__main__':
 
     #map_val = [대분류, 소분류, 시작날짜, 종료날짜]
@@ -219,11 +217,13 @@ if __name__ == '__main__':
     '105':["731","226","227","230","732","283","229","228"]
     }
 
+
+    #yyyy-mm-dd의 양식 날짜를 받음
     #탐색 시작 날짜
     date_s = "2022-03-01"
 
     #탐색 종료 날짜
-    date_e = "2021-02-28"
+    date_e = "2021-01-01"
 
     #date_s = 2022-01-01
     #date_e = 2021-01-01
@@ -242,9 +242,8 @@ if __name__ == '__main__':
     #탐색할 기사의 분야
     #sid1 = 100 -> 정치
     #sid1 = 103 -> 생활/문화
-    sid1 = "100"
-    sid2 = sid[sid1][0]
-
+    sid1='100'
+    sid2=sid[sid1][1]
 
     #날짜를 N개의 묶음으로 나눔
     days = (date_s - date_e).days
@@ -269,12 +268,12 @@ if __name__ == '__main__':
 
     #get_link_test(map_val[0])
 
+
     pool = multiprocessing.Pool(processes=N)
     pool.map(get_article, map_val)
 
     pool.close()
     pool.join()
-
     '''
     for sid2 in sid[sid1]:
         #날짜를 N개의 묶음으로 나눔
