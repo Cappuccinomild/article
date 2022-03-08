@@ -92,8 +92,8 @@ def get_article(map_val):#return list
     date_e = map_val[3]
 
     #저장할 폴더
-    path = './'+sid1+sid2+"_link"
-    output_path = './'+sid1+sid2
+    path = './'+sid1+'/'+sid1+sid2+"_link"
+    output_path = './'+sid1+'/'+sid1+sid2
     os.makedirs(output_path, exist_ok=True)
     #분할된 날짜 내의 파일만 가져옴
     link_set = []
@@ -164,14 +164,41 @@ def get_article(map_val):#return list
                 errorlog.write('UnicodeEncodeError : ')
                 errorlog.write(line[4][:-1] + '\n')
                 errorlog.close()
-            except SyntaxError as syntx:
-                print(fname)
-                print(syntx)
-                print(line)
-                errorlog = open(output_path + "/" + fname +"_err", "a")
-                errorlog.write('SyntaxError : ')
-                errorlog.write(line[4][:-1] + '\n')
-                errorlog.close()
+            except SyntaxError as syntx: #id가 다른 기사가 존재함
+
+                try:
+                    for item in soup.find_all('div', id='articleBody'):
+
+                        text = text + str(item.find_all(text=True))
+
+                        text = ast.literal_eval(text)
+
+                        doc = text_cleaning(text, line[1])#본문 내 언론사 삭제
+
+                        word_corpus = (' '.join(doc))
+
+                        word_corpus = cut_tail(word_corpus)
+
+                        output.write(word_corpus + '\n\n')
+                except:
+                    try:
+                        for item in soup.find_all('div', id='newsEndContents'):
+
+                            text = text + str(item.find_all(text=True))
+                            text = ast.literal_eval(text)
+                            doc = text_cleaning(text, line[1])#본문 내 언론사 삭제
+                            word_corpus = (' '.join(doc))
+                            word_corpus = cut_tail(word_corpus)
+                            output.write(word_corpus + '\n\n')
+
+                    except:
+                        print(fname)
+                        print(val)
+                        print(line)
+                        errorlog = open(output_path + "/" + fname +"_err", "a")
+                        errorlog.write('SyntaxError : ')
+                        errorlog.write(line[4][:-1] + '\n')
+                        errorlog.close()
             except ValueError as val:
                 print(fname)
                 print(val)
@@ -220,7 +247,7 @@ if __name__ == '__main__':
 
     #yyyy-mm-dd의 양식 날짜를 받음
     #탐색 시작 날짜
-    date_s = "2022-03-01"
+    date_s = "2022-03-06"
 
     #탐색 종료 날짜
     date_e = "2021-01-01"
@@ -228,6 +255,7 @@ if __name__ == '__main__':
     #date_s = 2022-01-01
     #date_e = 2021-01-01
     #->2022년 1월 1일부터 2021년 1월 1일까지의 데이터 수집
+
 
     date_s = date_s.split("-")
     date_e = date_e.split("-")
@@ -239,6 +267,7 @@ if __name__ == '__main__':
     date_s = datetime.datetime(date_s[0],date_s[1],date_s[2])
     date_e = datetime.datetime(date_e[0],date_e[1],date_e[2])
 
+    '''
     #탐색할 기사의 분야
     #sid1 = 100 -> 정치
     #sid1 = 103 -> 생활/문화
@@ -275,35 +304,36 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
     '''
-    for sid2 in sid[sid1]:
-        #날짜를 N개의 묶음으로 나눔
-        days = (date_s - date_e).days
 
-        #process의 개수
-        N = 6
+    for sid1 in sid.keys():
+        for sid2 in sid[sid1]:
+            #날짜를 N개의 묶음으로 나눔
+            days = (date_s - date_e).days
 
-        temp_e = []
-        for i in range(0,days, math.ceil(days/N)):
+            #process의 개수
+            N = 10
 
-            temp_e.append(date_s - datetime.timedelta(days=i))
+            temp_e = []
+            for i in range(0,days, math.ceil(days/N)):
 
-        map_val=[]
-        for i in range(len(temp_e)-1):
-            map_val.append([sid1, sid2, temp_e[i], temp_e[i+1] - datetime.timedelta(days=1)])
+                temp_e.append(date_s - datetime.timedelta(days=i))
 
-        map_val.append([sid1, sid2, temp_e[-1], date_e])
+            map_val=[]
+            for i in range(len(temp_e)-1):
+                map_val.append([sid1, sid2, temp_e[i], temp_e[i+1] - datetime.timedelta(days=1)])
+
+            map_val.append([sid1, sid2, temp_e[-1], date_e])
 
 
-        process_num = len(sid[sid1])
-        print(map_val, "process : ", process_num)
+            process_num = len(sid[sid1])
+            print(map_val, "process : ", process_num)
 
-        #get_link_test(map_val[0])
+            #get_link_test(map_val[0])
 
-        pool = multiprocessing.Pool(processes=N)
-        pool.map(get_article, map_val)
+            pool = multiprocessing.Pool(processes=N)
+            pool.map(get_article, map_val)
 
-        pool.close()
-        pool.join()
+            pool.close()
+            pool.join()
 
-        print(sid1, sid2, "end")
-    '''
+            print(sid1, sid2, "end")

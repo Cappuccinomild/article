@@ -54,7 +54,7 @@ def get_link_test(map_val):#일별 기사 페이지 링크를 추출함
     print(datas)
 
     #전체코드세부코드 디렉토리를 만든 후 파일 저장
-    dir = './'+sid1+sid2+"_link"
+    dir = './'+sid1+'/'+sid1+sid2+"_link"
     os.makedirs(dir, exist_ok=True)
 
 
@@ -165,8 +165,9 @@ if __name__ == '__main__':
     '105':["731","226","227","230","732","283","229","228"]
     }
 
+
     #탐색 시작 날짜
-    date_s = "2022-03-01"
+    date_s = "2022-03-06"
 
     #탐색 종료 날짜
     date_e = "2021-01-01"
@@ -191,34 +192,35 @@ if __name__ == '__main__':
     sid1 = "100"
     #sid2 = sid[sid1][0]
 
-    for sid2 in sid[sid1]:
-        #날짜를 N개의 묶음으로 나눔
-        days = (date_s - date_e).days
+    for sid1 in sid.keys():
+        for sid2 in sid[sid1]:
+            #날짜를 N개의 묶음으로 나눔
+            days = (date_s - date_e).days
 
-        #process의 개수
-        N = 6
+            #process의 개수
+            N = 6
 
-        temp_e = []
-        for i in range(0,days, math.ceil(days/N)):
+            temp_e = []
+            for i in range(0,days, math.ceil(days/N)):
 
-            temp_e.append(date_s - datetime.timedelta(days=i))
+                temp_e.append(date_s - datetime.timedelta(days=i))
 
-        map_val=[]
-        for i in range(len(temp_e)-1):
-            map_val.append([sid1, sid2, temp_e[i], temp_e[i+1] - datetime.timedelta(days=1)])
+            map_val=[]
+            for i in range(len(temp_e)-1):
+                map_val.append([sid1, sid2, temp_e[i], temp_e[i+1] - datetime.timedelta(days=1)])
 
-        map_val.append([sid1, sid2, temp_e[-1], date_e])
+            map_val.append([sid1, sid2, temp_e[-1], date_e])
 
 
-        process_num = len(sid[sid1])
-        print(map_val, "process : ", process_num)
+            process_num = len(sid[sid1])
+            print(map_val, "process : ", process_num)
 
-        #get_link_test(map_val[0])
+            #get_link_test(map_val[0])
 
-        pool = multiprocessing.Pool(processes=N)
-        pool.map(get_link_test, map_val)
+            pool = multiprocessing.Pool(processes=N)
+            pool.map(get_link_test, map_val)
 
-        pool.close()
-        pool.join()
+            pool.close()
+            pool.join()
 
-        print(sid1, sid2, "end")
+            print(sid1, sid2, "end")
