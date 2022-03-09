@@ -166,6 +166,16 @@ if __name__ == '__main__':
     }
 
 
+    #cmd 입력으로 crawl.py 2022-03-06 2022-01-01실행
+    if len(sys.argv) == 3:
+        date_s = sys.argv[1]
+        date_e = sys.argv[2]
+
+    else:
+        print("날짜를 입력해주세요.")
+        sys.exit()
+    #yyyy-mm-dd의 양식 날짜를 받음
+    '''
     #탐색 시작 날짜
     date_s = "2022-03-06"
 
@@ -175,6 +185,8 @@ if __name__ == '__main__':
     #date_s = 2022-01-01
     #date_e = 2021-01-01
     #->2022년 1월 1일부터 2021년 1월 1일까지의 데이터 수집
+    '''
+
 
     date_s = date_s.split("-")
     date_e = date_e.split("-")

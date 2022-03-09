@@ -7,6 +7,7 @@ import ast
 import multiprocessing
 import os
 import math
+import sys
 from tqdm import tqdm
 
 def str_to_date(input):#yyyymmdd 문자열을 datetime 객체로 변경
@@ -93,7 +94,7 @@ def get_article(map_val):#return list
 
     #저장할 폴더
     path = './'+sid1+'/'+sid1+sid2+"_link"
-    output_path = './'+sid1+'/'+sid1+sid2
+    output_path = '/'+sid1+'/'+sid1+sid2
     os.makedirs(output_path, exist_ok=True)
     #분할된 날짜 내의 파일만 가져옴
     link_set = []
@@ -108,7 +109,6 @@ def get_article(map_val):#return list
     for i in tqdm(range(len(link_set))):
         fname = link_set[i]
         f = open(path + "/" + fname)
-        output = open(output_path + "/" + fname, "a", encoding='utf-8')
 
         #파일 형식
         #line -> sid1sid2_언론사_날짜_페이지_기사링크
@@ -123,6 +123,8 @@ def get_article(map_val):#return list
             line = line.split("_")
 
             try:
+                #언론사별로 나눠진 폴더에 저장
+                output = open("./" + line[1]+ "/" + output_path + "/" + fname, "a", encoding='utf-8')
                 #저장된 링크를 통한 기사 크롤링
                 html = get_html(line[4].replace("\n", ''))#끝부분 줄바꿈문자 제거
             except:
@@ -138,7 +140,7 @@ def get_article(map_val):#return list
             img_desc = []
             doc = None
 
-            output.write("_".join(line[:2]))
+            output.write("_".join(line[:2]) + " ")
 
             for item in soup.find_all('div', id='articleBodyContents'):
 
@@ -212,10 +214,9 @@ def get_article(map_val):#return list
                 print("unexpect")
                 print(line)
 
-
+            output.close()
             line = f.readline()
 
-    output.close()
     f.close()
 
 
@@ -245,7 +246,23 @@ if __name__ == '__main__':
     }
 
 
+    #디렉토리 생성
+    for media in ["경향신문","국민일보","동아일보","문화일보","서울신문","세계일보","조선일보","중앙일보","한겨례","한국일보"]:
+        for sid1 in sid.keys():
+            for sid2 in sid[sid1]:
+                os.makedirs("./" + media + "/" + sid1 + "/" + sid1 + sid2, exist_ok=True)
+
+
+    #cmd 입력으로 article.py 2022-03-06 2022-01-01실행
+    if len(sys.argv) == 3:
+        date_s = sys.argv[1]
+        date_e = sys.argv[2]
+
+    else:
+        print("날짜를 입력해주세요.")
+        sys.exit()
     #yyyy-mm-dd의 양식 날짜를 받음
+    '''
     #탐색 시작 날짜
     date_s = "2022-03-06"
 
@@ -255,7 +272,7 @@ if __name__ == '__main__':
     #date_s = 2022-01-01
     #date_e = 2021-01-01
     #->2022년 1월 1일부터 2021년 1월 1일까지의 데이터 수집
-
+    '''
 
     date_s = date_s.split("-")
     date_e = date_e.split("-")
