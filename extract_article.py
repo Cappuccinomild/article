@@ -34,6 +34,7 @@ def search_keyword(map_val):
         f = open(fname, encoding = 'utf-8')
 
         line = f.readline()
+
         while line:
 
             #매치 확인
@@ -78,6 +79,8 @@ if __name__ == '__main__':
     process_num = 10
 
     while line:
+        print(line)
+
         #저장폴더 이름
         dirname = line.replace("&", "AND").replace("|", "OR").replace("\n", "")
         os.makedirs(dirname, exist_ok=True)
