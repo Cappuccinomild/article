@@ -6,6 +6,10 @@ import os
 from tqdm import tqdm
 import math
 import multiprocessing
+import sys
+
+#언론사
+newspaper = open("언론사.txt", encoding = 'utf-8').read().split(" ")
 
 def str_to_date(input):#yyyymmdd 문자열을 datetime 객체로 변경
     #                             yyyy              mm              dd
@@ -25,10 +29,9 @@ def date_to_str(input):#datetime 객체를 yyyymmdd 형식으로 변경
 
     return output
 
-#테스팅 중
-#100 264에 대한 오늘부터 2021년 1월 1일까지의 기사 링크 추출
-def get_link_test(map_val):#일별 기사 페이지 링크를 추출함
+def get_link(map_val):#일별 기사 페이지 링크를 추출함
 
+    print(newspaper)
     #map_val[대분류코드, 시작날짜, 종료날짜]
     sid1 = map_val[0]
     sid2 = map_val[1]
@@ -103,7 +106,7 @@ def get_link_test(map_val):#일별 기사 페이지 링크를 추출함
 
                 #메이저 언론사인지 확인
                 media = link.find('span', class_="writing").text
-                if media in ["경향신문","국민일보","동아일보","문화일보","서울신문","세계일보","조선일보","중앙일보","한겨례","한국일보"]:
+                if media in newspaper:
 
                     #링크모음 저장
                     #저장태그
@@ -134,7 +137,16 @@ def get_link_test(map_val):#일별 기사 페이지 링크를 추출함
 
 if __name__ == '__main__':
 
-    start = time.time()
+    print(datetime.datetime.now())
+
+    #cmd 입력으로 crawl.py 2022-03-06 2022-01-01 [언론사 목록]실행
+    if len(sys.argv) == 3:
+        date_s = sys.argv[1]
+        date_e = sys.argv[2]
+
+    else:
+        print("날짜를 입력해주세요.")
+        sys.exit()
 
     '''
     date_s = input("start:")
@@ -166,6 +178,8 @@ if __name__ == '__main__':
     }
 
 
+    #yyyy-mm-dd의 양식 날짜를 받음
+    '''
     #탐색 시작 날짜
     date_s = "2022-03-06"
 
@@ -175,6 +189,8 @@ if __name__ == '__main__':
     #date_s = 2022-01-01
     #date_e = 2021-01-01
     #->2022년 1월 1일부터 2021년 1월 1일까지의 데이터 수집
+    '''
+
 
     date_s = date_s.split("-")
     date_e = date_e.split("-")
@@ -215,12 +231,14 @@ if __name__ == '__main__':
             process_num = len(sid[sid1])
             print(map_val, "process : ", process_num)
 
-            #get_link_test(map_val[0])
+            #get_link(map_val[0])
 
             pool = multiprocessing.Pool(processes=N)
-            pool.map(get_link_test, map_val)
+            pool.map(get_link, map_val)
 
             pool.close()
             pool.join()
 
             print(sid1, sid2, "end")
+
+    print(time.time())
