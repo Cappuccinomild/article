@@ -10,8 +10,6 @@ import math
 import sys
 from tqdm import tqdm
 
-newspaper = open("언론사.txt", encoding = 'utf-8').read().split(" ")
-
 def str_to_date(input):#yyyymmdd 문자열을 datetime 객체로 변경
     #                             yyyy              mm              dd
     return datetime.datetime(int(input[:4]), int(input[4:6]), int(input[6:]))
@@ -88,33 +86,33 @@ def cut_tail(word_corpus):
 #기사 본문 추출
 def get_article(map_val):#return list
     print(map_val)
-    #map_val[대분류코드, 시작날짜, 종료날짜]
-    sid1 = map_val[0]
-    sid2 = map_val[1]
-    date_s = map_val[2]
-    date_e = map_val[3]
+    #map_val[시작날짜, 종료날짜]
+    date_s = map_val[0]
+    date_e = map_val[1]
 
     #저장할 폴더
-    path = './'+sid1+'/'+sid1+sid2+"_link"
-    output_path = '/'+sid1+'/'+sid1+sid2
+    path = './Column_link'
+    output_path = './Column'
     os.makedirs(output_path, exist_ok=True)
     #분할된 날짜 내의 파일만 가져옴
     link_set = []
     for fname in os.listdir(path):
 
-        fdate = fname.split("_")[1][:-4]
+        fdate = fname[:-4]
         fdate = str_to_date(fdate)
 
         if date_s >= fdate and fdate >= date_e:
             link_set.append(fname)
+
 
     for i in tqdm(range(len(link_set))):
         fname = link_set[i]
         f = open(path + "/" + fname)
 
         #파일 형식
-        #line -> sid1sid2_언론사_날짜_페이지_기사링크
+        #line -> 언론사_날짜_페이지_기사링크
         line = f.readline()
+
         while line:
             if not line:
                 break
@@ -122,15 +120,18 @@ def get_article(map_val):#return list
             if line == "\n":
                 break
 
+
             line = line.split("_")
 
             try:
                 #언론사별로 나눠진 폴더에 저장
-                output = open("./" + line[1]+ "/" + output_path + "/" + fname, "a", encoding='utf-8')
+                os.makedirs(output_path + "/" + line[0], exist_ok=True)
+                output = open(output_path + "/" + line[0] + "/" + fname, "a", encoding='utf-8')
                 #저장된 링크를 통한 기사 크롤링
-                html = get_html(line[4].replace("\n", ''))#끝부분 줄바꿈문자 제거
+                html = get_html(line[3].replace("\n", ''))#끝부분 줄바꿈문자 제거
             except:
                 print("errline", fname, line)
+                line = f.readline()
                 continue
 
             #사진 설명 삭제
@@ -142,7 +143,7 @@ def get_article(map_val):#return list
             img_desc = []
             doc = None
 
-            output.write("_".join(line[:2]) + " ")
+            output.write("_".join(line[:1]) + " ")
 
             for item in soup.find_all('div', id='articleBodyContents'):
 
@@ -235,50 +236,6 @@ if __name__ == '__main__':
         print("날짜를 입력해주세요.")
         sys.exit()
 
-    #map_val = [대분류, 소분류, 시작날짜, 종료날짜]
-    #분할처리를 위해 대분류 코드가 들어간 map_val을 6개 만듦
-
-    #대분류코드 = 정치:100   경제:101  사회:102  생활/문화:103   세계:104   IT/과학:105
-
-    #소분류코드
-    #정치sid2 = 청와대:264  국회/정당:265   북한:268 행정:266 국방/외교:267  정치일반:269
-    #경제sid2 = 금융:259    증권:258  산업/재계:261   중기/벤처:771   부동산:260 글로벌 경제:262  생활경제:310    경제일반:263
-    #사회sid2 = 사건사고:249  교육:250  노동:251  언론:254  환경:252  인권/복지:59b   식품/의료:255   지역:256  인물:276  사회일반:257
-    #생활/문화sid2 = 건강정보:241   자동차/시승기:239    도로/교통:240  여행/레저:237 음식/맛집:238  패션/뷰티:376  공연/전시:242  책:243  종교:244  날씨:248  생활문화 일반:245
-    #세계sid2 = 아시아/호주:231    미국/중남미:232  유럽:233   중동/아프리카:234    세계일반:322
-    #IT/과학sid2 = 모바일:731    인터넷/SNS:226    통신/뉴미디어:227    IT일반:230   보안/해킹:732  컴퓨터:283    게임/리뷰:229  과학 일반:228
-
-    #대분류 소분류에 사용되는 sid 목록
-    sid = {
-    '100':["264","265","268","266","267","269"],
-    '101':["259","258","261","771","260","262","310","263"],
-    '102':["249","250","251","254","252","59b","255","256","276","257"],
-    '103':["241","239","240","237","238","376","242","243","244","248","245"],
-    '104':["231","232","233","234","322"],
-    '105':["731","226","227","230","732","283","229","228"]
-    }
-
-
-    #디렉토리 생성
-    for media in newspaper:
-        for sid1 in sid.keys():
-            for sid2 in sid[sid1]:
-                os.makedirs("./" + media + "/" + sid1 + "/" + sid1 + sid2, exist_ok=True)
-
-
-    #yyyy-mm-dd의 양식 날짜를 받음
-    '''
-    #탐색 시작 날짜
-    date_s = "2022-03-06"
-
-    #탐색 종료 날짜
-    date_e = "2021-01-01"
-
-    #date_s = 2022-01-01
-    #date_e = 2021-01-01
-    #->2022년 1월 1일부터 2021년 1월 1일까지의 데이터 수집
-    '''
-
     date_s = date_s.split("-")
     date_e = date_e.split("-")
 
@@ -289,18 +246,11 @@ if __name__ == '__main__':
     date_s = datetime.datetime(date_s[0],date_s[1],date_s[2])
     date_e = datetime.datetime(date_e[0],date_e[1],date_e[2])
 
-    '''
-    #탐색할 기사의 분야
-    #sid1 = 100 -> 정치
-    #sid1 = 103 -> 생활/문화
-    sid1='100'
-    sid2=sid[sid1][1]
-
     #날짜를 N개의 묶음으로 나눔
     days = (date_s - date_e).days
 
     #process의 개수
-    N = 6
+    N = 10
 
     temp_e = []
     for i in range(0,days, math.ceil(days/N)):
@@ -309,56 +259,19 @@ if __name__ == '__main__':
 
     map_val=[]
     for i in range(len(temp_e)-1):
-        map_val.append([sid1, sid2, temp_e[i], temp_e[i+1] - datetime.timedelta(days=1)])
+        map_val.append([temp_e[i], temp_e[i+1] - datetime.timedelta(days=1)])
 
-    map_val.append([sid1, sid2, temp_e[-1], date_e])
+    map_val.append([temp_e[-1], date_e])
 
-
-    process_num = len(sid[sid1])
+    process_num = len(map_val)
     print(map_val, "process : ", process_num)
-
-    #get_link_test(map_val[0])
-
 
     pool = multiprocessing.Pool(processes=N)
     pool.map(get_article, map_val)
 
     pool.close()
     pool.join()
-    '''
-
-    for sid1 in sid.keys():
-        for sid2 in sid[sid1]:
-            #날짜를 N개의 묶음으로 나눔
-            days = (date_s - date_e).days
-
-            #process의 개수
-            N = 10
-
-            temp_e = []
-            for i in range(0,days, math.ceil(days/N)):
-
-                temp_e.append(date_s - datetime.timedelta(days=i))
-
-            map_val=[]
-            for i in range(len(temp_e)-1):
-                map_val.append([sid1, sid2, temp_e[i], temp_e[i+1] - datetime.timedelta(days=1)])
-
-            map_val.append([sid1, sid2, temp_e[-1], date_e])
 
 
-            process_num = len(sid[sid1])
-            print(map_val, "process : ", process_num)
 
-            #get_link_test(map_val[0])
-
-            pool = multiprocessing.Pool(processes=N)
-            pool.map(get_article, map_val)
-
-            pool.close()
-            pool.join()
-
-            print(sid1, sid2, "end")
-
-
-    print(time.time())
+    print(datetime.datetime.now())
