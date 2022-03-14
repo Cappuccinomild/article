@@ -148,11 +148,6 @@ if __name__ == '__main__':
         print("날짜를 입력해주세요.")
         sys.exit()
 
-    '''
-    date_s = input("start:")
-    date_e = input("end:")
-    '''
-
 
     #map_val = [대분류, 소분류, 시작날짜, 종료날짜]
     #분할처리를 위해 대분류 코드가 들어간 map_val을 6개 만듦
@@ -178,20 +173,6 @@ if __name__ == '__main__':
     }
 
 
-    #yyyy-mm-dd의 양식 날짜를 받음
-    '''
-    #탐색 시작 날짜
-    date_s = "2022-03-06"
-
-    #탐색 종료 날짜
-    date_e = "2021-01-01"
-
-    #date_s = 2022-01-01
-    #date_e = 2021-01-01
-    #->2022년 1월 1일부터 2021년 1월 1일까지의 데이터 수집
-    '''
-
-
     date_s = date_s.split("-")
     date_e = date_e.split("-")
 
@@ -205,8 +186,7 @@ if __name__ == '__main__':
     #탐색할 기사의 분야
     #sid1 = 100 -> 정치
     #sid1 = 103 -> 생활/문화
-    sid1 = "100"
-    #sid2 = sid[sid1][0]
+
 
     for sid1 in sid.keys():
         for sid2 in sid[sid1]:
@@ -214,7 +194,7 @@ if __name__ == '__main__':
             days = (date_s - date_e).days
 
             #process의 개수
-            N = 6
+            N = 10
 
             temp_e = []
             for i in range(0,days, math.ceil(days/N)):
@@ -241,4 +221,4 @@ if __name__ == '__main__':
 
             print(sid1, sid2, "end")
 
-    print(time.time())
+    print(datetime.datetime.now())
