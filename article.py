@@ -52,7 +52,7 @@ def date_to_str(input):
 
 def get_html(url):
 
-    hdr = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'}
+    hdr = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36 Edg/103.0.1264.49'}
     _html = ""
 
     while True:
@@ -62,6 +62,13 @@ def get_html(url):
         except requests.exceptions.Timeout as timeout:
 
             print(timeout)
+            print(url)
+            time.sleep(10)
+            continue
+
+        except requests.exceptions.ConnectionError as cut:
+
+            print(cut)
             print(url)
             time.sleep(10)
             continue
@@ -116,22 +123,28 @@ def get_article(map_val):#return list
         #line -> sid1sid2_언론사_날짜_페이지_기사링크
         line = f.readline()
         while line:
+
             if not line:
                 break
 
             if line == "\n":
                 break
-
-            line = line.split("_")
-
             try:
-                #언론사별로 나눠진 폴더에 저장
-                output = open("./" + line[1]+ "/" + output_path + "/" + fname, "a", encoding='utf-8')
-                #저장된 링크를 통한 기사 크롤링
-                html = get_html(line[4].replace("\n", ''))#끝부분 줄바꿈문자 제거
+                line = line.split("_")
             except:
-                print("errline", fname, line)
+                print("------------------ split err ------------------")
+                print(line)
+                line = f.readline()
+                print(line)
                 continue
+
+
+            #언론사별로 나눠진 폴더에 저장
+            output = open("./" + line[1]+ "/" + output_path + "/" + fname, "a", encoding='utf-8')
+            #저장된 링크를 통한 기사 크롤링
+            print(line[4].replace("\n", ''))
+            html = get_html(line[4].replace("\n", ''))#끝부분 줄바꿈문자 제거
+
 
             #사진 설명 삭제
             html = re.sub('<em class="img_desc.+?/em>', '', html)
@@ -144,7 +157,7 @@ def get_article(map_val):#return list
 
             output.write("_".join(line[:2]) + " ")
 
-            for item in soup.find_all('div', id='articleBodyContents'):
+            for item in soup.find_all('div', id='dic_area'):
 
                 text = text + str(item.find_all(text=True))
             try:
@@ -171,7 +184,7 @@ def get_article(map_val):#return list
             except SyntaxError as syntx: #id가 다른 기사가 존재함
 
                 try:
-                    for item in soup.find_all('div', id='articleBody'):
+                    for item in soup.find_all('div', id='articleBodyContents'):
 
                         text = text + str(item.find_all(text=True))
 
@@ -186,7 +199,7 @@ def get_article(map_val):#return list
                         output.write(word_corpus + '\n\n')
                 except:
                     try:
-                        for item in soup.find_all('div', id='newsEndContents'):
+                        for item in soup.find_all('div', id='articleBody'):
 
                             text = text + str(item.find_all(text=True))
                             text = ast.literal_eval(text)
@@ -196,13 +209,23 @@ def get_article(map_val):#return list
                             output.write(word_corpus + '\n\n')
 
                     except:
-                        print(fname)
-                        print(val)
-                        print(line)
-                        errorlog = open(output_path + "/" + fname +"_err", "a")
-                        errorlog.write('SyntaxError : ')
-                        errorlog.write(line[4][:-1] + '\n')
-                        errorlog.close()
+                        try:
+                            for item in soup.find_all('div', id='newsEndContents'):
+
+                                text = text + str(item.find_all(text=True))
+                                text = ast.literal_eval(text)
+                                doc = text_cleaning(text, line[1])#본문 내 언론사 삭제
+                                word_corpus = (' '.join(doc))
+                                word_corpus = cut_tail(word_corpus)
+                                output.write(word_corpus + '\n\n')
+                        except:
+                            print(fname)
+                            print(val)
+                            print(line)
+                            errorlog = open(output_path + "/" + fname +"_err", "a")
+                            errorlog.write('SyntaxError : ')
+                            errorlog.write(line[4][:-1] + '\n')
+                            errorlog.close()
             except ValueError as val:
                 print(fname)
                 print(val)
