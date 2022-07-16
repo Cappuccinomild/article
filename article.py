@@ -70,7 +70,8 @@ def get_html(url):
 
             print(cut)
             print(url)
-            time.sleep(10)
+            #연결 끊김 발생시 15분 대기
+            time.sleep(900)
             continue
 
         if resp.status_code == 200:
@@ -247,7 +248,7 @@ def get_article(map_val):#return list
 
 if __name__ == '__main__':
 
-    print(datetime.datetime.now())
+    start = datetime.datetime.now()
 
     #cmd 입력으로 crawl.py 2022-03-06 2022-01-01 [언론사 목록]실행
     if len(sys.argv) == 3:
@@ -384,4 +385,4 @@ if __name__ == '__main__':
             print(sid1, sid2, "end")
 
 
-    print(time.time())
+    print(datetime.datetime.now() - start)
